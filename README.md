@@ -19,19 +19,19 @@ How to use caddie?
 >>> X = [1] * 1000
 >>> Y = [-1] * 1000
 >>> from caddie import cisc
->>> cisc.cisc(X, Y) # CISC
+>>> cisc.cisc(X, Y)                                                       # CISC
 (0.0, 0.0)
 >>> from caddie import anm, measures
->>> anm.fit_anm_both_dir(X, Y, measures.StochasticComplexity) # CRISP
+>>> anm.fit_anm_both_dir(X, Y, measures.StochasticComplexity)             # CRISP
 (0.0, 0.0)
->>> anm.fit_anm_both_dir(X, Y, measures.ChiSquaredTest) # DR
+>>> anm.fit_anm_both_dir(X, Y, measures.ChiSquaredTest)                   # DR
 (1.0, 1.0)
->>> anm.fit_anm_both_dir(X, Y, measures.ShannonEntropy) # ACID
+>>> anm.fit_anm_both_dir(X, Y, measures.ShannonEntropy)                   # ACID
 (0.0, 0.0)
 >>> from caddie import simulations
->>> simulations.simulate_decision_rate_against_data_type('/absolute/path/to/results/dir/')  # for decision rate vs data type plots
+>>> simulations.simulate_decision_rate_against_data_type('/results/dir/') # for decision rate vs data type plots
 ...
->>> simulations.simulate_accuracy_against_sample_size('/absolute/path/to/results/dir/')     # for accuracy/decidability vs sample size plots
+>>> simulations.simulate_accuracy_against_sample_size('/results/dir/')    # for accuracy/decidability vs sample size plots
 ...
 ```
 
