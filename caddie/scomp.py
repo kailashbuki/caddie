@@ -13,8 +13,6 @@ import numpy as np
 
 
 def parametric_complexity(n: int, k: int) -> float:
-    assert n >= k
-
     total = 1.0
     b = 1.0
     d = 10
