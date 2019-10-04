@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages # type: ignore
 
 
-with open('README.rst', 'r') as fp:
+with open('README.md', 'r') as fp:
     README = fp.read()
 
 with open('LICENSE', 'r') as fp:
