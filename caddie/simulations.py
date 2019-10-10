@@ -181,7 +181,7 @@ def simulate_accuracy_against_sample_size(results_dir: str,
             results.loc[i]['dec_%s' % method] = len(decs) / nsample
     print(results)
     results.to_csv(os.path.join(
-        results_dir, 'acc_dec_by_sample_size.dat'), index=False)
+        results_dir, 'acc_dec_by_sample_size.csv'), index=False)
 
 
 def simulate_decision_rate_against_data_type(results_dir: str,
@@ -225,5 +225,5 @@ def simulate_decision_rate_against_data_type(results_dir: str,
             rates, accs = _dr_curve(
                 np.array(decs_by_method[method]), np.array(diffs_by_method[method]))
             df = pd.DataFrame(data=dict(rates=rates, accuracies=accs))
-            df.to_csv(os.path.join(results_dir, '%s-drate-%s.dat' %
+            df.to_csv(os.path.join(results_dir, '%s-drate-%s.csv' %
                                    (srcX, method)), sep=',', index=False)
