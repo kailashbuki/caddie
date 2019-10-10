@@ -36,30 +36,31 @@ def discrete_regression(X: List[int], Y: List[int],
     # maximise the p-value, but minimise other information-theoretic scores
     opt_prob = min if dep_measure.type == DependenceMeasureType.INFO else max
 
-    j = 0
-    while j < max_niter:
-        # If the dep_measure is a hypothesis test, then eps_info is a p-value.
-        if dep_measure.type == DependenceMeasureType.NHST and eps_info > level:
-            break
-        # optimise in one direction at a time
-        random.shuffle(supp_X)
-        for x_to_map in supp_X:
-            temp = []
+    if not (len(supp_X) == 1 or len(supp_img_f) == 1):
+        j = 0
+        while j < max_niter:
+            # if the dep_measure is a NHST, then eps_info is a p-value.
+            if dep_measure.type == DependenceMeasureType.NHST and eps_info > level:
+                break
+            # optimise in one direction at a time
+            random.shuffle(supp_X)
+            for x_to_map in supp_X:
+                temp = []
 
-            for cand_img_fx in supp_img_f:
-                if cand_img_fx == f[x_to_map]:
-                    continue
+                for cand_img_fx in supp_img_f:
+                    if cand_img_fx == f[x_to_map]:
+                        continue
 
-                eps = [y - f[x] if x != x_to_map else y -
-                       cand_img_fx for x, y in pair]
-                temp.append((dep_measure.measure(eps, X), cand_img_fx))
+                    eps = [y - f[x] if x != x_to_map else y -
+                           cand_img_fx for x, y in pair]
+                    temp.append((dep_measure.measure(eps, X), cand_img_fx))
 
-            # update f only if the dep measure is optimised in this direction
-            best_eps_info, best_y = opt_prob(temp, key=lambda x: x[0])
-            if opt_prob(best_eps_info, eps_info) == best_eps_info:
-                f[x_to_map] = best_y
-                eps_info = best_eps_info
-        j += 1
+                # update f only if the dep measure is optimised in this direction
+                best_eps_info, best_y = opt_prob(temp, key=lambda x: x[0])
+                if opt_prob(best_eps_info, eps_info) == best_eps_info:
+                    f[x_to_map] = best_y
+                    eps_info = best_eps_info
+            j += 1
 
     if dep_measure.type == DependenceMeasureType.INFO:
         return dep_measure.measure(X) + eps_info
