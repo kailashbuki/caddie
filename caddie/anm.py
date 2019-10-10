@@ -24,48 +24,47 @@ def _map_x_to_freq_y(X: List[int], Y: List[int]) -> Dict[int, int]:
 
 def discrete_regression(X: List[int], Y: List[int],
                         dep_measure: Type[DependenceMeasure],
-                        max_niter: int, level: float) -> float:
-    supp_X = list(set(X))
-    supp_Y = list(range(min(Y), max(Y)+1))
+                        max_niter: int,
+                        level: float) -> float:
     f = _map_x_to_freq_y(X, Y)
-
     pair = list(zip(X, Y))
-    res = [y - f[x] for x, y in pair]
-    cur_res_inf = dep_measure.measure(res, X)
-    sign = -1 if dep_measure.type == DependenceMeasureType.NHST else 1
-    cur_res_inf *= sign
+    eps = [y - f[x] for x, y in pair]
+    eps_info = dep_measure.measure(eps, X)
+
+    supp_X = list(set(X))
+    supp_img_f = list(range(min(Y), max(Y)+1))
+    # maximise the p-value, but minimise other information-theoretic scores
+    opt_prob = min if dep_measure.type == DependenceMeasureType.INFO else max
 
     j = 0
     while j < max_niter:
-        if dep_measure.type == DependenceMeasureType.NHST and -cur_res_inf > level:
+        # If the dep_measure is a hypothesis test, then eps_info is a p-value.
+        if dep_measure.type == DependenceMeasureType.NHST and eps_info > level:
             break
-
+        # optimise in one direction at a time
         random.shuffle(supp_X)
         for x_to_map in supp_X:
-            best_res_inf = sys.float_info.max
+            temp = []
 
-            for cand_y in supp_Y:
-                if cand_y == f[x_to_map]:
+            for cand_img_fx in supp_img_f:
+                if cand_img_fx == f[x_to_map]:
                     continue
 
-                res = [y - f[x] if x != x_to_map else y -
-                       cand_y for x, y in pair]
-                res_inf = dep_measure.measure(res, X)
-                res_inf *= sign
+                eps = [y - f[x] if x != x_to_map else y -
+                       cand_img_fx for x, y in pair]
+                temp.append((dep_measure.measure(eps, X), cand_img_fx))
 
-                if res_inf < best_res_inf:
-                    best_res_inf = res_inf
-                    best_y = cand_y
-
-            if best_res_inf < cur_res_inf:
-                cur_res_inf = best_res_inf
+            # update f only if the dep measure is optimised in this direction
+            best_eps_info, best_y = opt_prob(temp, key=lambda x: x[0])
+            if opt_prob(best_eps_info, eps_info) == best_eps_info:
                 f[x_to_map] = best_y
+                eps_info = best_eps_info
         j += 1
 
     if dep_measure.type == DependenceMeasureType.INFO:
-        return dep_measure.measure(X) + cur_res_inf
+        return dep_measure.measure(X) + eps_info
     else:
-        return sign * cur_res_inf
+        return eps_info
 
 
 def fit_anm_both_dir(X: List[int], Y: List[int],
