@@ -8,6 +8,7 @@ from math import log
 from typing import List, Optional
 
 import numpy as np  # type: ignore
+import pandas as pd  # type: ignore
 from scipy.stats import chi2_contingency    # type: ignore
 
 from .scomp import stochastic_complexity
@@ -62,31 +63,10 @@ class ChiSquaredTest(DependenceMeasure):
     type: DependenceMeasureType = DependenceMeasureType.NHST
 
     @staticmethod
-    def contingency_table(seq1: List[int], seq2: List[int]) -> np.array:
-        dom_seq1 = list(set(seq1))
-        dom_seq2 = list(set(seq2))
-
-        ndom_seq1 = len(dom_seq1)
-        ndom_seq2 = len(dom_seq2)
-
-        indices1 = dict(zip(dom_seq1, range(ndom_seq1)))
-        indices2 = dict(zip(dom_seq2, range(ndom_seq2)))
-
-        table = np.zeros((ndom_seq1, ndom_seq2))
-
-        for k, v1 in enumerate(seq1):
-            v2 = seq2[k]
-            i, j = indices1[v1], indices2[v2]
-            table[i, j] += 1
-
-        return table
-
-    @staticmethod
     def nhst(seq1: List[int], seq2: List[int]) -> float:
         assert len(seq1) == len(seq2), "samples are not of the same size"
-
-        table = ChiSquaredTest.contingency_table(seq1, seq2)
-        _, p_value, _, _ = chi2_contingency(table, correction=False)
+        table = pd.crosstab(np.asarray(seq1), np.asarray(seq2)).values
+        _, p_value, dof, _ = chi2_contingency(table, correction=False)
         return p_value
 
     @staticmethod
