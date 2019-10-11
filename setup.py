@@ -16,7 +16,7 @@ INSTALL_REQUIRES = [
 
 setup(
     name='caddie',
-    version='0.1.2',
+    version='0.1.3',
     description='Information-Theoretic Causal Inference on Discrete Data',
     long_description=README,
     long_description_content_type="text/markdown",
