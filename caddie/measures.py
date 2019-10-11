@@ -63,16 +63,11 @@ class ChiSquaredTest(DependenceMeasure):
     type: DependenceMeasureType = DependenceMeasureType.NHST
 
     @staticmethod
-    def nhst(seq1: List[int], seq2: List[int]) -> float:
-        assert len(seq1) == len(seq2), "samples are not of the same size"
-        table = pd.crosstab(np.asarray(seq1), np.asarray(seq2)).values
-        _, p_value, dof, _ = chi2_contingency(table, correction=False)
-        return p_value
-
-    @staticmethod
     def measure(seq1: List[int], seq2: Optional[List[int]] = None) -> float:
+        assert len(seq1) == len(seq2), "samples are not of the same size"
         if seq2 is not None:
-            p_value = ChiSquaredTest.nhst(seq1, seq2)
+            table = pd.crosstab(np.asarray(seq1), np.asarray(seq2)).values
+            _, p_value, _, _ = chi2_contingency(table, correction=False)
             return p_value
         else:
             raise ValueError('seq2 is missing.')
