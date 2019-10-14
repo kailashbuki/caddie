@@ -64,25 +64,26 @@ class ChiSquaredTest(DependenceMeasure):
 
     @staticmethod
     def measure(seq1: List[int], seq2: Optional[List[int]] = None) -> float:
-        assert len(seq1) == len(seq2), "samples are not of the same size"
-        if seq2 is not None:
-            dom_seq1 = list(set(seq1))
-            dom_seq2 = list(set(seq2))
-
-            ndom_seq1 = len(dom_seq1)
-            ndom_seq2 = len(dom_seq2)
-
-            indices1 = dict(zip(dom_seq1, range(ndom_seq1)))
-            indices2 = dict(zip(dom_seq2, range(ndom_seq2)))
-
-            table = np.zeros((ndom_seq1, ndom_seq2))
-
-            for k, v1 in enumerate(seq1):
-                v2 = seq2[k]
-                i, j = indices1[v1], indices2[v2]
-                table[i, j] += 1
-
-            _, p_value, _, _ = chi2_contingency(table, correction=False)
-            return p_value
-        else:
+        if not seq2:
             raise ValueError('seq2 is missing.')
+
+        assert len(seq1) == len(seq2), "samples are not of the same size"
+
+        dom_seq1 = list(set(seq1))
+        dom_seq2 = list(set(seq2))
+
+        ndom_seq1 = len(dom_seq1)
+        ndom_seq2 = len(dom_seq2)
+
+        indices1 = dict(zip(dom_seq1, range(ndom_seq1)))
+        indices2 = dict(zip(dom_seq2, range(ndom_seq2)))
+
+        table = np.zeros((ndom_seq1, ndom_seq2))
+
+        for k, v1 in enumerate(seq1):
+            v2 = seq2[k]
+            i, j = indices1[v1], indices2[v2]
+            table[i, j] += 1
+
+        _, p_value, _, _ = chi2_contingency(table, correction=False)
+        return p_value
