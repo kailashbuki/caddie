@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Tuple, Type
 from .cisc import partition
 from .measures import DependenceMeasure, DependenceMeasureType
 
-__all__ = ['discrete_regression', 'fit_anm_both_dir']
+__all__ = ['discrete_regression', 'fit_both_dir']
 
 
 def _map_x_to_freq_y(X: List[int], Y: List[int]) -> Dict[int, int]:
@@ -70,7 +70,7 @@ def discrete_regression(X: List[int], Y: List[int],
         return cur_eps_info
 
 
-def fit_anm_both_dir(X: List[int], Y: List[int],
+def fit_both_dir(X: List[int], Y: List[int],
                      dep_measure: Type[DependenceMeasure],
                      max_niter: int = 10,
                      level: float = 0.05) -> Tuple[float, float]:

@@ -12,7 +12,7 @@ import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
 from tqdm import tqdm   # type: ignore
 
-from .anm import fit_anm_both_dir
+from .anm import fit_both_dir
 from .cisc import cisc
 from .measures import ChiSquaredTest, DependenceMeasure, ShannonEntropy, StochasticComplexity
 
@@ -116,7 +116,7 @@ def run_dr(X: List[int],
            Y: List[int],
            level: float,
            max_niter: int) -> Tuple[bool, bool, float]:
-    dr_score = fit_anm_both_dir(
+    dr_score = fit_both_dir(
         X, Y, ChiSquaredTest, max_niter=max_niter, level=level)
     indep_XtoY_only = dr_score[0] > level and dr_score[1] < level
     indep_YtoX_only = dr_score[0] < level and dr_score[1] > level
@@ -130,7 +130,7 @@ def run_it_anm(X: List[int],
                Y: List[int],
                measure: Type[DependenceMeasure],
                max_niter: int) -> Tuple[bool, bool, float]:
-    score = fit_anm_both_dir(X, Y, measure, max_niter=max_niter)
+    score = fit_both_dir(X, Y, measure, max_niter=max_niter)
     decision = score[0] != score[1]
     XtoY = score[0] < score[1]
     diff = abs(score[0] - score[1])
@@ -138,9 +138,9 @@ def run_it_anm(X: List[int],
 
 
 def simulate_accuracy_against_sample_size(results_dir: str,
-                                          nsample: int = 500,
+                                          nsample: int = 200,
                                           srcX: str = 'geometric',
-                                          max_niter: int = 10,
+                                          max_niter: int = 5,
                                           dr_level: float = 0.05) -> None:
     _validate_dir(results_dir)
 
@@ -152,10 +152,10 @@ def simulate_accuracy_against_sample_size(results_dir: str,
                                     'acc_acid', 'acc_crisp', 'dec_cisc',
                                     'dec_dr', 'dec_acid', 'dec_crisp'])
 
-    for i, sample_size in enumerate(tqdm(sample_sizes)):
+    for i, sample_size in enumerate(sample_sizes):
         decisions_by_method: DefaultDict[str, List[bool]] = defaultdict(list)
 
-        for j in range(nsample):
+        for j in tqdm(range(nsample)):
             X, Y = _gen_XY(srcX, supp_fX, sample_size)
 
             cisc_dec, cisc_XtoY, _ = run_cisc(X, Y)
@@ -185,15 +185,19 @@ def simulate_accuracy_against_sample_size(results_dir: str,
 
 
 def simulate_decision_rate_against_data_type(results_dir: str,
-                                             nsample: int = 500,
+                                             nsample: int = 200,
                                              sample_size=1000,
-                                             max_niter: int = 10,
+                                             max_niter: int = 5,
                                              dr_level: float = 0.05) -> None:
     _validate_dir(results_dir)
 
     supp_fX = list(range(-7, 8))
     srcsX = ['uniform', 'binomial', 'negativeBinomial', 'geometric',
              'hypergeometric', 'poisson', 'multinomial']
+
+    decisiveness = pd.DataFrame(0, index=srcsX, columns=[
+                                'cisc', 'dr', 'acid', 'crisp'])
+
     for srcX in tqdm(srcsX):
         decs_by_method: DefaultDict[str, List[bool]] = defaultdict(list)
         diffs_by_method: DefaultDict[str, List[float]] = defaultdict(list)
@@ -207,6 +211,11 @@ def simulate_decision_rate_against_data_type(results_dir: str,
                 X, Y, ShannonEntropy, max_niter)
             crisp_dec, crisp_XtoY, crisp_diff = run_it_anm(
                 X, Y, StochasticComplexity, max_niter)
+
+            decisiveness.loc[srcX]['cisc'] += int(cisc_dec)
+            decisiveness.loc[srcX]['dr'] += int(dr_dec)
+            decisiveness.loc[srcX]['acid'] += int(acid_dec)
+            decisiveness.loc[srcX]['crisp'] += int(crisp_dec)
 
             if cisc_dec:
                 decs_by_method['cisc'].append(cisc_XtoY)
@@ -227,3 +236,7 @@ def simulate_decision_rate_against_data_type(results_dir: str,
             df = pd.DataFrame(data=dict(rates=rates, accuracies=accs))
             df.to_csv(os.path.join(results_dir, '%s-drate-%s.csv' %
                                    (srcX, method)), sep=',', index=False)
+
+    decisiveness /= nsample
+    print(decisiveness)
+    decisiveness.to_csv(os.path.join(results_dir, 'decisiveness_srcsX.csv'), sep=',', index=True)

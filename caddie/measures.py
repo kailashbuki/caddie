@@ -64,7 +64,7 @@ class ChiSquaredTest(DependenceMeasure):
 
     @staticmethod
     def measure(seq1: List[int], seq2: Optional[List[int]] = None) -> float:
-        if not seq2:
+        if seq2 is None:
             raise ValueError('seq2 is missing.')
 
         assert len(seq1) == len(seq2), "samples are not of the same size"
